@@ -1,0 +1,24 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+logs/
+*.log
+
+# Internal docs (keep locally, not in public repo)
+PDD-etl-tg-booster.md
+PROJECT_STATUS.md
+private/
+
+# Local IDE / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

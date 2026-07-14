@@ -1,0 +1,62 @@
+# Reconciliation: PostgreSQL vs manual export
+
+Сверка данных ETL с ручной выгрузкой из TG Booster.
+
+## Период (пример)
+
+| Поле | Значение |
+|------|----------|
+| Date from | 2026-07-07 |
+| Date to | 2026-07-13 |
+| Manual source | Excel/CSV export (ad-level) |
+| PG source | `raw_campaign_stats` |
+
+## Результат
+
+| Metric | Manual | PostgreSQL | Delta |
+|--------|--------|------------|-------|
+| spend | 13 325.21 | 13 328.53 | **+0.025%** |
+| leads | 2 810 | 2 811 | **+0.036%** |
+
+**Вывод:** погрешность &lt; 2% — данные ETL совпадают с ручной выгрузкой.
+
+## Дневная сверка
+
+| stat_date | manual_spend | pg_spend | delta |
+|-----------|--------------|----------|-------|
+| 2026-07-07 | 2 118.38 | 2 118.98 | +0.03% |
+| 2026-07-08 | 2 048.35 | 2 051.38 | +0.15% |
+| 2026-07-09 | 2 046.79 | 2 047.14 | +0.02% |
+| 2026-07-10 | 1 964.44 | 1 964.26 | −0.01% |
+| 2026-07-11 | 1 721.06 | 1 720.99 | −0.00% |
+| 2026-07-12 | 1 854.08 | 1 853.97 | −0.01% |
+| 2026-07-13 | 1 572.11 | 1 571.81 | −0.02% |
+
+## Как повторить
+
+```bash
+# Итоги PG за период
+python -m etl reconcile --from 2026-07-07 --to 2026-07-13
+
+# Сравнение с Excel (локальный файл, не коммитить)
+python scripts/compare_manual_export.py path/to/export.xlsx <account_id>
+```
+
+## SQL
+
+```sql
+SELECT
+    stat_date,
+    SUM(spend) AS spend,
+    SUM(leads) AS leads
+FROM raw_campaign_stats
+WHERE account_id = '<cabinet_id>'
+  AND stat_date BETWEEN '2026-07-07' AND '2026-07-13'
+GROUP BY stat_date
+ORDER BY stat_date;
+```
+
+## Примечания
+
+- Excel обычно ad-level; PG — company-level. Небольшие расхождения (&lt;0.2%) ожидаемы.
+- Extract использует группировку `date + company` в одном запросе к API — корректные метрики по кампаниям.
