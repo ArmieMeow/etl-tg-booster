@@ -13,7 +13,7 @@ def test_map_report_record_with_company_grouping():
         "metric_joins": "2",
         "metric_spent": "10.50",
     }
-    row = map_report_record(record, cabinet_id="16159")
+    row = map_report_record(record, cabinet_id="10001")
     assert row.campaign_id == "65307"
     assert row.campaign_name == "Campaign A"
     assert row.spend == 10.50

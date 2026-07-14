@@ -83,33 +83,13 @@ class TgBoosterClient:
             raise ExtractError("invalid cabinets response")
         return [cabinet for cabinet in cabinets if isinstance(cabinet, dict)]
 
-    def fetch_campaigns(
-        self,
-        cabinet_id: str,
-        date_from: date,
-        date_to: date,
-    ) -> list[dict[str, Any]]:
-        payload = self._post(
-            f"/api/cabinet/{cabinet_id}/companies",
-            {
-                "filters": {
-                    "start_date": date_from.isoformat(),
-                    "finish_date": date_to.isoformat(),
-                }
-            },
-        )
-        campaigns = payload.get("campaigns", [])
-        if not isinstance(campaigns, list):
-            raise ExtractError("invalid campaigns response")
-        return [campaign for campaign in campaigns if isinstance(campaign, dict)]
-
     def fetch_cabinet_daily_by_company(
         self,
         cabinet_id: str,
         date_from: date,
         date_to: date,
     ) -> list[dict[str, Any]]:
-        """Day x company report in one request (correct per-campaign metrics)."""
+        """Day x company report for a cabinet."""
         payload = self._post(
             f"/api/cabinet/{cabinet_id}/reports",
             {
@@ -118,34 +98,6 @@ class TgBoosterClient:
                     "ads": {"company": True},
                 },
                 "filters": {
-                    "dates": [date_from.isoformat(), date_to.isoformat()],
-                },
-                "metrics": {
-                    "views": True,
-                    "clicks": True,
-                    "joins": True,
-                    "spent": True,
-                },
-            },
-        )
-        data = payload.get("data", [])
-        if not isinstance(data, list):
-            raise ExtractError("invalid reports response")
-        return [row for row in data if isinstance(row, dict)]
-
-    def fetch_daily_report(
-        self,
-        cabinet_id: str,
-        campaign_id: int,
-        date_from: date,
-        date_to: date,
-    ) -> list[dict[str, Any]]:
-        payload = self._post(
-            f"/api/cabinet/{cabinet_id}/reports",
-            {
-                "groups": {"date": {"day": True}},
-                "filters": {
-                    "company": [campaign_id],
                     "dates": [date_from.isoformat(), date_to.isoformat()],
                 },
                 "metrics": {
@@ -215,7 +167,7 @@ def fetch_campaign_stats(
     """
     Fetch day x campaign stats via TG Booster API for all configured cabinets.
 
-    Flow: cabinets -> per-cabinet day x company reports (single API call).
+    Flow: cabinets -> per-cabinet day x company reports.
     Docs: https://tgbooster.gitbook.io/tgbooster/api/api-metody
     """
     client = TgBoosterClient(settings)

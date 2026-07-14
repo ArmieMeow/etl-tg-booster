@@ -1,6 +1,6 @@
 # ETL: TG Booster → PostgreSQL → DataLens
 
-Пайплайн для автоматизации weekly-отчётности по рекламным кампаниям в Telegram Ads (TG Booster): загрузка из API, валидация, хранение в PostgreSQL, визуализация в Yandex DataLens.
+Пайплайн для автоматизации еженедельной отчётности по рекламным кампаниям в Telegram Ads (TG Booster): загрузка из API, валидация, хранение в PostgreSQL, визуализация в Yandex DataLens.
 
 ## Задача
 
@@ -9,19 +9,19 @@
 ## Архитектура
 
 ```
-TG Booster API  →  Python (extract, validate)  →  PostgreSQL  →  Yandex DataLens
+TG Booster API  →  Python (extract, validate, load)  →  PostgreSQL  →  Yandex DataLens
                          ↑
-                  CLI / Task Scheduler
+                  CLI / планировщик
 ```
 
 | Слой | Объект | Назначение |
 |------|--------|------------|
-| Raw | `raw_campaign_stats` | Статистика кампаний, `source_payload` (JSONB) |
-| Mart | `mart_campaign_daily` | View для BI: CPL, CPC, CPM |
+| Raw | `raw_campaign_stats` | Статистика кампаний, сырой JSON в `source_payload` |
+| Mart | `mart_campaign_daily` | Представление для BI: CPL, CPC, CPM |
 | Meta | `etl_runs` | Журнал запусков ETL |
 
 **Гранулярность:** день × кампания × кабинет.  
-**Метрики:** spend, impressions, clicks, leads.
+**Метрики:** расход, показы, клики, лиды.
 
 ## Стек
 
@@ -56,7 +56,7 @@ docker compose up -d
 python -m etl validate-config
 ```
 
-Для production PostgreSQL на VPS — см. [`docs/production-postgres.md`](docs/production-postgres.md).
+Для production PostgreSQL на VPS — [`docs/production-postgres.md`](docs/production-postgres.md).
 
 ### 4. Загрузка данных
 
@@ -73,17 +73,17 @@ python -m etl run --incremental
 | Команда | Описание |
 |---------|----------|
 | `validate-config` | Проверка `.env` и подключения к БД |
-| `run --from DATE --to DATE` | Backfill за период |
-| `run --incremental` | Догрузка свежих данных |
-| `extract --dry-run` | Extract без записи в БД |
-| `reconcile --from DATE --to DATE` | Дневные итоги PG для сверки |
+| `run --from DATE --to DATE` | Загрузка за период |
+| `run --incremental` | Инкрементальная догрузка |
+| `extract --dry-run` | Извлечение без записи в БД |
+| `reconcile --from DATE --to DATE` | Дневные итоги для сверки |
 
-Коды выхода: `0` OK · `1` config/validation · `2` API · `3` empty response.
+Коды выхода: `0` — успех · `1` — конфигурация/валидация · `2` — ошибка API · `3` — пустой ответ.
 
 ## Сверка с ручной выгрузкой
 
 Методика и пример сверки за 7 дней — [`docs/reconciliation.md`](docs/reconciliation.md).  
-Допустимая погрешность: &lt; 2% по spend и leads.
+Допустимая погрешность: < 2% по расходу и лидам.
 
 ## Документация
 
@@ -91,8 +91,8 @@ python -m etl run --incremental
 |------|------------|
 | [`docs/datalens-setup.md`](docs/datalens-setup.md) | Подключение DataLens к PostgreSQL |
 | [`docs/production-postgres.md`](docs/production-postgres.md) | PostgreSQL на VPS |
-| [`docs/schedule.md`](docs/schedule.md) | Планировщик (cron / Task Scheduler) |
-| [`docs/sql-queries.md`](docs/sql-queries.md) | SQL для weekly-отчёта |
+| [`docs/schedule.md`](docs/schedule.md) | Планировщик (cron / Windows) |
+| [`docs/sql-queries.md`](docs/sql-queries.md) | SQL для еженедельного отчёта |
 
 ## Тесты
 
@@ -103,14 +103,9 @@ pytest
 ## Структура проекта
 
 ```
-etl/           # extract, validate, load, CLI
-sql/           # DDL, migrations, views
-docs/          # setup guides
-scripts/       # automation helpers
+etl/           # извлечение, валидация, загрузка, CLI
+sql/           # DDL, миграции, представления
+docs/          # инструкции
+scripts/       # скрипты автоматизации
 tests/
 ```
-
-## Безопасность
-
-- Секреты только в `.env` (в git не попадает)
-- В публичной документации не указывайте имена клиентов, кабинетов и production-хосты

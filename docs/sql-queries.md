@@ -1,8 +1,8 @@
-# SQL snippets for weekly reporting
+# SQL-запросы для еженедельного отчёта
 
-Use after `python -m etl run --incremental`.
+Примеры запросов после `python -m etl run --incremental`.
 
-## Last sync
+## Последний запуск ETL
 
 ```sql
 SELECT run_id, finished_at, rows_loaded, mode, status
@@ -11,7 +11,7 @@ ORDER BY run_id DESC
 LIMIT 1;
 ```
 
-## Totals by day (last 7 days)
+## Итоги по дням (7 дней)
 
 ```sql
 SELECT
@@ -25,7 +25,7 @@ GROUP BY stat_date
 ORDER BY stat_date;
 ```
 
-## Totals by campaign (last 7 days)
+## Итоги по кампаниям (7 дней)
 
 ```sql
 SELECT
@@ -40,7 +40,7 @@ GROUP BY account_id, campaign_name
 ORDER BY spend DESC;
 ```
 
-## Reconciliation helper (compare with manual export)
+## Сверка за период
 
 ```sql
 SELECT
@@ -49,9 +49,7 @@ SELECT
     SUM(leads) AS leads,
     COUNT(*) AS row_count
 FROM raw_campaign_stats
-WHERE stat_date BETWEEN '2026-07-07' AND '2026-07-13'
+WHERE stat_date BETWEEN :date_from AND :date_to
 GROUP BY stat_date
 ORDER BY stat_date;
 ```
-
-Replace dates with your reconciliation window.

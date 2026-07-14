@@ -12,7 +12,7 @@ build/
 logs/
 *.log
 
-# Internal docs (keep locally, not in public repo)
+# Local only
 PDD-etl-tg-booster.md
 PROJECT_STATUS.md
 private/

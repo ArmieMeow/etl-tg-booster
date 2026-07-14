@@ -1,11 +1,11 @@
-# Production PostgreSQL (VPS)
+# PostgreSQL на VPS (production)
 
 Развёртывание PostgreSQL на VPS для ETL и DataLens.
 
 ## На сервере
 
 ```bash
-# Docker
+# Установка Docker
 curl -fsSL https://get.docker.com | sh
 
 mkdir -p /opt/etl-tg-booster/sql
@@ -16,7 +16,7 @@ mkdir -p /opt/etl-tg-booster/sql
 
 ```env
 POSTGRES_USER=etl
-POSTGRES_PASSWORD=<strong-password>
+POSTGRES_PASSWORD=<надёжный-пароль>
 POSTGRES_DB=tg_booster
 ```
 
@@ -28,23 +28,17 @@ docker compose exec -T postgres psql -U etl -d tg_booster < sql/002_multi_cabine
 docker compose exec -T postgres psql -U etl -d tg_booster < sql/views.sql
 ```
 
-## Firewall
+## Файрвол
 
-Откройте **TCP 5432** для доступа DataLens и ETL с вашего ПК.
+Откройте **TCP 5432** для доступа DataLens и ETL с рабочей машины.
 
-## Локальный ETL
+## Запуск ETL с локального ПК
 
 ```env
-DATABASE_URL=postgresql://etl:<password>@<vps-host>:5432/tg_booster
+DATABASE_URL=postgresql://etl:<пароль>@<хост-vps>:5432/tg_booster
 ```
 
 ```bash
 python -m etl validate-config
 python -m etl run --from 2026-06-01 --to 2026-06-30
 ```
-
-## Безопасность
-
-- Длинный пароль, не дефолтный `etl_local`
-- Не коммитьте `.env` и production host в git
-- После демо можно закрыть 5432 в firewall и ходить через VPN/SSH tunnel

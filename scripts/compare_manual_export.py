@@ -1,4 +1,4 @@
-"""Compare TG Booster manual Excel export vs PostgreSQL (one-off reconciliation helper)."""
+"""Сравнение ручной Excel-выгрузки TG Booster с итогами в PostgreSQL."""
 from __future__ import annotations
 
 import sys
