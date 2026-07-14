@@ -2,6 +2,8 @@
 
 Развёртывание PostgreSQL на VPS для ETL и DataLens.
 
+> **Примечание:** описание ниже — MVP для портфолио-кейса (DataLens + ETL с рабочего ПК). Для production-команды потребовались бы VPN, TLS, закрытый порт 5432 и managed PostgreSQL.
+
 ## На сервере
 
 ```bash
